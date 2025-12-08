@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Our Christmas Forest Journey</title>
+  <title>🎄 A Christmas Surprise 🎄</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -27,13 +27,13 @@
       <div class="letter-content">
         <h1>🎄 A Christmas Surprise 🎄</h1>
         <p style="font-size: 18px; margin: 20px 0; color: #c41e3a;">
-          <strong>For Beatrice — from Jack ❤️</strong>
+          <strong>For Beatrice - from Jack ❤️</strong>
         </p>
         <p style="font-size: 16px; line-height: 1.8; color: #4a5568; margin: 25px 0;">
           To my silly goose,<br><br>
-          This year has been a tough one, so I wanted to make you something to remember all the fun times.<br><br>
+          This year has been a tough one, so I wanted to make you something for all the good memories.<br><br>
           Each stop along the way holds a special moment we've shared together.<br><br>
-          I hope you have enjoyed your Christmas present...<br>
+          I hope you have enjoy your Christmas present...<br>
         </p>
         <button id="startBtn" class="primary">Let's Go! 🎅</button>
         <p class="tiny" style="margin-top: 15px; color: #718096;">Tip: switch off iPhone Silent Mode for audio 🎧</p>
@@ -42,71 +42,71 @@
   </div>
 
   <div id="hud" class="hud hidden" aria-live="polite">
-    <button id="muteBtn" class="chip">Play Music</button>
+    <button id="muteBtn" class="chip" aria-label="Toggle audio">Play Music</button>
   </div>
 
-  <div id="prompt" class="overlay hidden">
+  <div id="prompt" class="overlay hidden" role="dialog" aria-modal="true">
     <div class="card">
       <h2 id="promptTitle">We've arrived</h2>
       <p id="promptText">Go inside this gingerbread house to view the memory, or keep walking?</p>
       <div class="row gap">
-        <button id="viewBtn" class="secondary">View Memory</button>
-        <button id="continueBtn" class="primary">Keep Walking</button>
+        <button id="viewBtn" class="secondary" aria-label="View memory inside the house">View Memory</button>
+        <button id="continueBtn" class="primary" aria-label="Continue walking">Keep Walking</button>
       </div>
     </div>
   </div>
 
-  <div id="memory" class="overlay hidden">
+  <div id="memory" class="overlay hidden" role="dialog" aria-modal="true">
     <div class="card">
       <h2 id="memoryTitle">Memory</h2>
       <div style="position: relative;">
         <img id="memoryImg" alt="Memory photo" />
         <div style="position: absolute; top: 50%; left: 10px; transform: translateY(-50%);">
-          <button id="prevImageBtn" class="chip" style="font-size: 20px; padding: 8px 12px;">←</button>
+          <button id="prevImageBtn" class="chip" style="font-size: 20px; padding: 8px 12px;" aria-label="Previous image">←</button>
         </div>
         <div style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%);">
-          <button id="nextImageBtn" class="chip" style="font-size: 20px; padding: 8px 12px;">→</button>
+          <button id="nextImageBtn" class="chip" style="font-size: 20px; padding: 8px 12px;" aria-label="Next image">→</button>
         </div>
       </div>
-      <p id="imageCounter" style="font-size: 14px; color: #888; margin: 5px 0;">1 / 3</p>
-      <button id="closeMemoryBtn" class="primary">Continue</button>
+      <p id="imageCounter" style="font-size: 14px; color: #888; margin: 5px 0;" aria-live="polite">1 / 3</p>
+      <button id="closeMemoryBtn" class="primary" aria-label="Close memory and continue journey">Continue</button>
     </div>
   </div>
 
-  <div id="flowersPrompt" class="overlay hidden">
+  <div id="flowersPrompt" class="overlay hidden" role="dialog" aria-modal="true">
     <div class="card">
-      <h2 style="margin-top:0">🌸 A Tribute to Nanny & Grandma 🕊️</h2>
-      <p>Would you like to leave these flowers outside<br>in memory of Nanny and Grandma?</p>
+      <h2 style="margin-top:0">🌸 Memories with Nanny & Grandma 🕊️</h2>
+      <p>Would you like to leave these flowers outside for Nanny and Grandma?</p>
       <div style="display:flex; gap:12px; margin-top:12px;">
-        <button id="flowersYes" class="btn primary">Leave Flowers</button>
-        <button id="flowersNo" class="btn btn-secondary">Keep Walking</button>
+        <button id="flowersYes" class="btn primary" aria-label="Leave flowers as a tribute">Leave Flowers</button>
+        <button id="flowersNo" class="btn btn-secondary" aria-label="Keep walking without leaving flowers">Keep Walking</button>
       </div>
     </div>
   </div>
 
-  <div id="presentsPrompt" class="overlay hidden">
+  <div id="presentsPrompt" class="overlay hidden" role="dialog" aria-modal="true">
     <div class="card">
       <h2 style="margin-top:0">Would you like your presents now?</h2>
       <p>Santa can take you straight to the North Pole 🎅✨</p>
       <div style="display:flex; gap:12px; margin-top:12px;">
-        <button id="presentsYes" class="btn">Yes, take me there</button>
-        <button id="presentsNo" class="btn btn-secondary">Not yet</button>
+        <button id="presentsYes" class="btn" aria-label="Accept ride to North Pole">Yes, take me there</button>
+        <button id="presentsNo" class="btn btn-secondary" aria-label="Decline ride to North Pole">Not yet</button>
       </div>
     </div>
   </div>
 
-  <div id="northPole" class="overlay hidden">
+  <div id="northPole" class="overlay hidden" role="dialog" aria-modal="true">
     <div class="card">
       <h2>🎅 Welcome to the North Pole! 🎁</h2>
       <p id="giftMessage">
-        Merry Christmas, Beatrice! 🎄✨<br><br>
+        Merry Christmas, Silly Goose! 🎄✨<br><br>
         You'll have to wait to open your presents… but here's a hint:
         it's something we'll enjoy together. Love, Jack.
       </p>
-      <button id="restartBtn" class="secondary">Restart Journey</button>
+      <button id="restartBtn" class="secondary" aria-label="Restart the journey from the beginning">Restart Journey</button>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
