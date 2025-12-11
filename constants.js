@@ -115,5 +115,23 @@ export const DEFAULT_VOLUME = 0.55;
 export const FOOTSTEP_INTERVAL = 25; // Frames between footstep sounds
 export const FOOTSTEP_VOLUME = 0.15;
 
+// ===== SKY ELEMENTS =====
+// Flying Reindeer
+export const REINDEER_SPAWN_CHANCE = 0.0008; // per frame
+export const REINDEER_SPEED = 2.5;
+export const REINDEER_SIZE = 40;
+
+// Christmas Ornaments
+export const ORNAMENT_SPAWN_CHANCE = 0.001; // per frame
+export const ORNAMENT_FLOAT_SPEED = 0.3;
+export const ORNAMENT_SIZE = 25;
+export const ORNAMENT_COLORS = ['#ff6b6b', '#6bff6b', '#6b6bff', '#ffd700', '#ff1493'];
+
+// Christmas Bells
+export const BELL_SPAWN_CHANCE = 0.0007; // per frame
+export const BELL_FLOAT_SPEED = 0.4;
+export const BELL_SIZE = 20;
+export const BELL_SPARKLE_COUNT = 3;
+
 // ===== DEBUG =====
 export const DEBUG = false; // Set to true for console logging

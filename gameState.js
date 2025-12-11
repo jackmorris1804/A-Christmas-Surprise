@@ -115,7 +115,9 @@ export const gradientCache = {
   moonGlow: null,
   auroraGradients: [],
   houseLightGradients: new Map(),
-  shootingStarGradient: null
+  shootingStarGradient: null,
+  ornamentGradients: new Map(), // key: color, value: gradient
+  bellGradient: null
 };
 
 // Particle pools for object reuse
@@ -123,7 +125,10 @@ export const particlePools = {
   sparkles: [],
   shootingStars: [],
   magicParticles: [],
-  smokeParticles: []
+  smokeParticles: [],
+  flyingReindeer: [],
+  ornaments: [],
+  bells: []
 };
 
 // Initialize particle pools
@@ -146,6 +151,32 @@ export function initParticlePools() {
   for (let i = 0; i < 50; i++) {
     particlePools.magicParticles.push({
       x: 0, y: 0, vx: 0, vy: 0, life: 0, size: 0, color: '', active: false
+    });
+  }
+
+  // Pre-allocate flying reindeer objects
+  for (let i = 0; i < 3; i++) {
+    particlePools.flyingReindeer.push({
+      x: 0, y: 0, speed: 0, size: 0, flapPhase: 0, active: false
+    });
+  }
+
+  // Pre-allocate ornament objects
+  for (let i = 0; i < 10; i++) {
+    particlePools.ornaments.push({
+      x: 0, y: 0, speedY: 0, speedX: 0, rotation: 0, rotationSpeed: 0,
+      size: 0, color: '', swayPhase: 0, active: false
+    });
+  }
+
+  // Pre-allocate bell objects
+  for (let i = 0; i < 5; i++) {
+    particlePools.bells.push({
+      x: 0, y: 0, floatPhase: 0, swayPhase: 0, size: 0,
+      sparkles: Array.from({length: 3}).map(() => ({
+        angle: 0, distance: 0, life: 0
+      })),
+      life: 0, active: false
     });
   }
 }

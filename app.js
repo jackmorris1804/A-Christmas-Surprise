@@ -69,6 +69,17 @@ import {
   MOON_CLICK_RADIUS,
   DOOR_OPEN_ANGLE,
   DOOR_ANIMATION_SPEED,
+  REINDEER_SPAWN_CHANCE,
+  REINDEER_SPEED,
+  REINDEER_SIZE,
+  ORNAMENT_SPAWN_CHANCE,
+  ORNAMENT_FLOAT_SPEED,
+  ORNAMENT_SIZE,
+  ORNAMENT_COLORS,
+  BELL_SPAWN_CHANCE,
+  BELL_FLOAT_SPEED,
+  BELL_SIZE,
+  BELL_SPARKLE_COUNT,
   DEBUG
 } from './constants.js';
 
@@ -268,6 +279,15 @@ const snowdrifts = Array.from({length: SNOWDRIFT_COUNT}).map(() => ({
 // Deer/Woodland Creatures
 const deer = [];
 
+// Flying Reindeer - using object pooling
+const flyingReindeer = particlePools.flyingReindeer;
+
+// Christmas Ornaments - using object pooling
+const ornaments = particlePools.ornaments;
+
+// Christmas Bells - using object pooling
+const bells = particlePools.bells;
+
 // Ground sparkles
 const groundSparkles = Array.from({length: GROUND_SPARKLE_COUNT}).map(() => ({
   x: Math.random() * 3000,
@@ -292,26 +312,16 @@ let familyMembers = [
 // Helpers
 function houseScreenX(worldX){ return Math.floor(worldX - gameState.cachedScrollX_035); }
 
-// Audio unlock on first user interaction
-let audioUnlocked = false;
-async function unlockAudio() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
+// Audio initialization on envelope click
+let audioInitialized = false;
+async function initAudioOnEnvelopeClick() {
+  if (audioInitialized) return;
+  audioInitialized = true;
 
   await initAudio();
-  // Attempt to play (will resume when user starts journey)
-  try {
-    await audio.play();
-    audio.pause(); // Pause until journey starts
-  } catch (e) {
-    console.warn('[audio] Auto-unlock failed, will retry on journey start');
-  }
-
-  window.removeEventListener('touchstart', unlockAudio);
-  window.removeEventListener('click', unlockAudio);
+  // Start playing the music immediately when envelope is clicked
+  playAudio();
 }
-window.addEventListener('touchstart', unlockAudio, { passive: true });
-window.addEventListener('click', unlockAudio, { passive: true });
 
 // ===== FOOTSTEP SOUND GENERATOR =====
 let audioContext = null;
@@ -372,6 +382,9 @@ if (envelopeContainer) {
       // Open the envelope
       envelopeEl.classList.add('opening');
 
+      // Initialize and start audio when envelope is clicked
+      initAudioOnEnvelopeClick();
+
       // Start preloading images immediately
       preloadImages();
 
@@ -396,8 +409,8 @@ async function startJourney(){
   // Enable canvas pointer events for moon click
   canvas.style.pointerEvents = 'auto';
 
-  // Start audio playback using module function
-  playAudio();
+  // Audio is already playing from envelope click
+  // Just update the mute button state
   if (muteBtn) {
     muteBtn.textContent = 'Mute';
   }
@@ -490,6 +503,11 @@ function drawSky(){
 
   // Shooting stars
   drawShootingStars();
+
+  // Christmas-themed flying objects
+  drawFlyingReindeer();
+  drawChristmasOrnaments();
+  drawChristmasBells();
 }
 
 function drawAurora() {
@@ -572,6 +590,292 @@ function drawShootingStars() {
     ctx.moveTo(star.x, star.y);
     ctx.lineTo(star.x + star.length, star.y + star.length * 0.3);
     ctx.stroke();
+  }
+}
+
+function drawFlyingReindeer() {
+  // Spawn new reindeer randomly using object pooling
+  if (Math.random() < REINDEER_SPAWN_CHANCE) {
+    // Find inactive reindeer from pool
+    let reindeer = null;
+    for (let i = 0; i < flyingReindeer.length; i++) {
+      if (!flyingReindeer[i].active) {
+        reindeer = flyingReindeer[i];
+        break;
+      }
+    }
+
+    // Activate and initialize reindeer
+    if (reindeer) {
+      reindeer.active = true;
+      reindeer.x = W + REINDEER_SIZE;
+      reindeer.y = H * 0.2 + Math.random() * H * 0.3;
+      reindeer.speed = REINDEER_SPEED + Math.random() * 1;
+      reindeer.size = REINDEER_SIZE;
+      reindeer.flapPhase = Math.random() * Math.PI * 2;
+    }
+  }
+
+  // Static color string (optimization)
+  const reindeerColor = 'rgba(80, 50, 30, 0.7)';
+
+  // Update and draw reindeer
+  for (let i = 0; i < flyingReindeer.length; i++) {
+    const reindeer = flyingReindeer[i];
+    if (!reindeer.active) continue;
+
+    reindeer.x -= reindeer.speed;
+    reindeer.flapPhase += 0.1;
+
+    // Deactivate when off-screen (object pooling)
+    if (reindeer.x < -reindeer.size * 2) {
+      reindeer.active = false;
+      continue;
+    }
+
+    ctx.save();
+    ctx.translate(reindeer.x, reindeer.y);
+    // Flip horizontally to face left (direction of movement)
+    ctx.scale(-1, 1);
+
+    // Reindeer silhouette (simple side view)
+    ctx.fillStyle = reindeerColor;
+
+    // Body
+    ctx.fillRect(-15, -8, 30, 16);
+
+    // Head and neck
+    ctx.fillRect(12, -12, 12, 12);
+
+    // Antlers
+    ctx.strokeStyle = reindeerColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(18, -12);
+    ctx.lineTo(16, -18);
+    ctx.moveTo(18, -12);
+    ctx.lineTo(20, -16);
+    ctx.moveTo(22, -12);
+    ctx.lineTo(20, -18);
+    ctx.moveTo(22, -12);
+    ctx.lineTo(24, -16);
+    ctx.stroke();
+
+    // Legs (animated) - pre-calculate legOffset once
+    const legOffset = Math.sin(reindeer.flapPhase) * 4;
+    const leg1Height = 8 + legOffset;
+    const leg2Height = 8 - legOffset;
+
+    ctx.fillRect(-10, 8, 4, leg1Height);
+    ctx.fillRect(-2, 8, 4, leg2Height);
+    ctx.fillRect(6, 8, 4, leg1Height);
+    ctx.fillRect(14, 8, 4, leg2Height);
+
+    // Tail
+    ctx.fillRect(-18, -4, 6, 4);
+
+    ctx.restore();
+  }
+}
+
+function drawChristmasOrnaments() {
+  // Spawn new ornaments randomly using object pooling
+  if (Math.random() < ORNAMENT_SPAWN_CHANCE) {
+    // Find inactive ornament from pool
+    let ornament = null;
+    for (let i = 0; i < ornaments.length; i++) {
+      if (!ornaments[i].active) {
+        ornament = ornaments[i];
+        break;
+      }
+    }
+
+    // Activate and initialize ornament
+    if (ornament) {
+      ornament.active = true;
+      ornament.x = Math.random() * W;
+      ornament.y = -ORNAMENT_SIZE;
+      ornament.speedY = ORNAMENT_FLOAT_SPEED + Math.random() * 0.2;
+      ornament.speedX = (Math.random() - 0.5) * 0.3;
+      ornament.rotation = Math.random() * Math.PI * 2;
+      ornament.rotationSpeed = (Math.random() - 0.5) * 0.05;
+      ornament.size = ORNAMENT_SIZE + Math.random() * 10;
+      ornament.color = ORNAMENT_COLORS[Math.floor(Math.random() * ORNAMENT_COLORS.length)];
+      ornament.swayPhase = Math.random() * Math.PI * 2;
+    }
+  }
+
+  // Update and draw ornaments
+  for (let i = 0; i < ornaments.length; i++) {
+    const ornament = ornaments[i];
+    if (!ornament.active) continue;
+
+    ornament.y += ornament.speedY;
+    ornament.x += ornament.speedX + Math.sin(ornament.swayPhase) * 0.5;
+    ornament.rotation += ornament.rotationSpeed;
+    ornament.swayPhase += 0.02;
+
+    // Deactivate when off-screen (object pooling)
+    if (ornament.y > H + ornament.size) {
+      ornament.active = false;
+      continue;
+    }
+
+    ctx.save();
+    ctx.translate(ornament.x, ornament.y);
+    ctx.rotate(ornament.rotation);
+
+    // Pre-calculate size multipliers (optimization)
+    const size_0_2 = ornament.size * 0.2;
+    const size_0_6 = ornament.size * 0.6;
+    const size_0_15 = ornament.size * 0.15;
+    const size_0_7 = ornament.size * 0.7;
+    const size_0_3 = ornament.size * 0.3;
+    const size_0_1 = ornament.size * 0.1;
+
+    // OPTIMIZATION: Cache ornament gradients by color
+    let ornamentGradient = gradientCache.ornamentGradients.get(ornament.color);
+    if (!ornamentGradient) {
+      ornamentGradient = ctx.createRadialGradient(-size_0_2, -size_0_2, 0, 0, 0, size_0_6);
+      ornamentGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+      ornamentGradient.addColorStop(0.3, ornament.color);
+      ornamentGradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
+      gradientCache.ornamentGradients.set(ornament.color, ornamentGradient);
+    }
+
+    ctx.fillStyle = ornamentGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, size_0_6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Top cap
+    ctx.fillStyle = '#d4af37';
+    ctx.fillRect(-size_0_15, -size_0_7, size_0_3, size_0_2);
+
+    // Hook
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, -size_0_7, size_0_1, 0, Math.PI);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
+function drawChristmasBells() {
+  // Spawn new bells randomly using object pooling
+  if (Math.random() < BELL_SPAWN_CHANCE) {
+    // Find inactive bell from pool
+    let bell = null;
+    for (let i = 0; i < bells.length; i++) {
+      if (!bells[i].active) {
+        bell = bells[i];
+        break;
+      }
+    }
+
+    // Activate and initialize bell
+    if (bell) {
+      bell.active = true;
+      bell.x = Math.random() * W;
+      bell.y = H * 0.15 + Math.random() * H * 0.2;
+      bell.floatPhase = Math.random() * Math.PI * 2;
+      bell.swayPhase = Math.random() * Math.PI * 2;
+      bell.size = BELL_SIZE + Math.random() * 10;
+      // Initialize sparkles
+      for (let s = 0; s < bell.sparkles.length; s++) {
+        bell.sparkles[s].angle = Math.random() * Math.PI * 2;
+        bell.sparkles[s].distance = 0;
+        bell.sparkles[s].life = Math.random();
+      }
+      bell.life = 1;
+    }
+  }
+
+  // Update and draw bells
+  for (let i = 0; i < bells.length; i++) {
+    const bell = bells[i];
+    if (!bell.active) continue;
+
+    bell.floatPhase += 0.02;
+    bell.swayPhase += 0.03;
+    bell.life -= 0.002;
+
+    // Deactivate when life expires (object pooling)
+    if (bell.life <= 0) {
+      bell.active = false;
+      continue;
+    }
+
+    const floatY = bell.y + Math.sin(bell.floatPhase) * 10;
+    const swayX = bell.x + Math.sin(bell.swayPhase) * 5;
+
+    ctx.save();
+    ctx.globalAlpha = bell.life;
+    ctx.translate(swayX, floatY);
+
+    // Pre-calculate size multipliers (optimization)
+    const size_0_5 = bell.size * 0.5;
+    const size_0_6 = bell.size * 0.6;
+    const size_0_4 = bell.size * 0.4;
+    const size_0_3 = bell.size * 0.3;
+    const size_0_2 = bell.size * 0.2;
+    const size_0_15 = bell.size * 0.15;
+    const bellSize2x = bell.size * 2;
+
+    // OPTIMIZATION: Cache bell gradient (same for all bells)
+    if (!gradientCache.bellGradient) {
+      gradientCache.bellGradient = ctx.createLinearGradient(-size_0_5, -bell.size, size_0_5, 0);
+      gradientCache.bellGradient.addColorStop(0, '#ffd700');
+      gradientCache.bellGradient.addColorStop(0.5, '#ffed4e');
+      gradientCache.bellGradient.addColorStop(1, '#b8860b');
+    }
+
+    ctx.fillStyle = gradientCache.bellGradient;
+    ctx.beginPath();
+    ctx.moveTo(-size_0_5, -size_0_3);
+    ctx.quadraticCurveTo(-size_0_6, 0, -size_0_4, size_0_3);
+    ctx.lineTo(size_0_4, size_0_3);
+    ctx.quadraticCurveTo(size_0_6, 0, size_0_5, -size_0_3);
+    ctx.closePath();
+    ctx.fill();
+
+    // Bell top
+    ctx.fillStyle = '#b8860b';
+    ctx.fillRect(-size_0_2, -size_0_5, size_0_4, size_0_2);
+
+    // Clapper
+    ctx.fillStyle = '#8b7355';
+    ctx.beginPath();
+    ctx.arc(0, size_0_2, size_0_15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // OPTIMIZATION: Convert forEach to for loop for better performance
+    const sparkleCount = bell.sparkles.length;
+    for (let s = 0; s < sparkleCount; s++) {
+      const sparkle = bell.sparkles[s];
+
+      sparkle.distance += 0.5;
+      sparkle.life -= 0.02;
+      if (sparkle.distance > bellSize2x) {
+        sparkle.distance = 0;
+        sparkle.life = 1;
+        sparkle.angle = Math.random() * Math.PI * 2;
+      }
+
+      if (sparkle.life > 0) {
+        const sx = Math.cos(sparkle.angle) * sparkle.distance;
+        const sy = Math.sin(sparkle.angle) * sparkle.distance;
+
+        ctx.fillStyle = `rgba(255, 215, 0, ${sparkle.life * 0.8})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.restore();
   }
 }
 
